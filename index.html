@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <script src="main.js" text="\text/javascript"></script>
+    <title>EPS Controller Website</title>
+</head>
+<body>
+<button class="printWimpy">Print Shift Wimpys</button>
+<nav>
+    <div class="menu-btn" onclick="showMenu()">
+        <div class="top"></div>
+        <div class="middle"></div>
+        <div class="bottom"></div>
+    </div>
+        <ul class="menu">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="wimpys.html">Wimpys</a></li>
+            <li><a href="noaa.html">NOAA</a></li>
+            <li><a href="jason.html">Jason</a></li>
+            <li><a href="tools.html">Tools</a></li>
+            <li><a href="links.html">Links</a></li>
+            <li><a href="projects.html">Projects</a></li>
+        </ul>
+</nav>
+<div class="header"><div class="title">EPS Controller Website</div><div class="time"></div></div>
+
+<div class="metop-countdown" id="metopa"onclick="showMetop()">
+    <div class="metop-title"><h2>Metop A</h2><h2 id="metopa-cntdwn">01:24:30</h2></div>
+    <h3>AOS</h1>
+    <h3>LOS</h1>
+    <h3>Az</h1>
+    <h3>Orbit n.</h1>
+</div>
+<div class="metop-countdown" id="metopb" onclick="showMetop()">
+    <div class="metop-title"><h2>Metop B</h2><h2 id="metopb-cntdwn">01:24:30</h2></div>
+    <h3>AOS</h1>
+    <h3>LOS</h1>
+    <h3>Az</h1>
+    <h3>Orbit n.</h1>
+</div>
+<div class="metop-countdown" id="metopc" onclick="showMetop()">
+    <div class="metop-title"><h2>Metop C</h2><h2 id="metopc-cntdwn">01:24:30</h2></div>
+    <h3>AOS</h1>
+    <h3>LOS</h1>
+    <h3>Az</h1>
+    <h3>Orbit n.</h1>
+</div>
+
+<div class="noaa19">
+    <div class="noaa-title"><h2>NOAA 19</h2><h2 id="noaa19-cntdwn">01:24:30</h2></div>
+    <h3>AOS</h1>
+    <h3>LOS</h1>
+    <h3>Az</h1>
+    <h3>Orbit n.</h1>
+    <h3>Frames expected</h3>
+</div>
+<div class="jason">
+    <div class="noaa-title"><h2>Jason 3</h2><h2 id="jason3-cntdwn">01:24:30</h2></div>
+    <h3>AOS</h1>
+    <h3>LOS</h1>
+    <h3>Orbit n.</h1>
+</div>
+
+<div class="fullMetop" onclick="showMetop()">
+    <div class="full-metop-countdown" id="fullmetopa">
+        <div class="metop-title"><h2>Metop A</h2><h2 id="metopa-cntdwn">01:24:30</h2></div>
+        <h3>AOS</h1>
+        <h3>LOS</h1>
+        <h3>Az</h1>
+        <h3>Orbit n.</h1>
+    </div>
+    <div class="full-metop-countdown" id="fullmetopb">
+        <div class="metop-title"><h2>Metop B</h2><h2 id="metopb-cntdwn">01:24:30</h2></div>
+        <h3>AOS</h1>
+        <h3>LOS</h1>
+        <h3>Az</h1>
+        <h3>Orbit n.</h1>
+    </div>
+    <div class="full-metop-countdown" id="fullmetopc">
+        <div class="metop-title"><h2>Metop C</h2><h2 id="metopc-cntdwn">01:24:30</h2></div>
+        <h3>AOS</h1>
+        <h3>LOS</h1>
+        <h3>Az</h1>
+        <h3>Orbit n.</h1>
+    </div>
+</div>
+
+
+</body>
+</html>
