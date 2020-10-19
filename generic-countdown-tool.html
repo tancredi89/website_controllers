@@ -1,0 +1,887 @@
+<?php
+//-------------Get DAY of Year including Leap Year -------------------
+
+$sound = ($_GET["sound"]); // Sound off 
+
+$Year= gmdate("Y");
+//echo $Year;
+
+if ($Year % 4 == 0 && ($Year % 100 != 0 || ($Year % 100 == 0 && $Year % 400 == 0)))
+{
+	$dayOY= gmdate("z")+1; //return true; leap year still right?
+	//$xnum = 365;
+}
+else
+{
+	$dayOY= gmdate("z")+1;   //return false;
+	//$xnum = 364;
+}
+
+// current time winter/sommer time from servertime script !!!
+$current_time = gmdate("H:i:s");
+
+// Check for Summer or Norm Time 0 Norm / 1 Summer
+$season = date('I', strtotime("now()"));
+if ($season == '0'){
+	$tdif = 3600;                     // Investigate during summer/winter adjustment 
+} else {
+	$tdif = 7200;
+}
+
+//#####################Convert dayOY to date Function #########################
+
+function dayofyear2date( $tDay, $tFormat = 'M j, Y' ) {
+	$day = intval( $tDay );
+	$day = ( $day == 0 ) ? $day : $day - 1;
+	$offset = intval( intval( $tDay ) * 86400 );
+	$str = date( $tFormat, strtotime( 'Jan 1, ' . date( 'Y' ) ) + $offset );
+	return( $str );
+}
+ 
+$datOY = dayofyear2date($dayOY - 1); //need to check the -1 option
+//-----------------------------------------------------END Day of Year-----------------------------------------------------------------------------
+
+//$etomite->runSnippet('wimpy-m03'); 
+//$etomite->runSnippet('wimpy-m01'); 
+ 
+//query filter function
+function queryWimpy($sat,$day,$time) {
+	$tomorrow = $day +1;
+	$filter = "doy = ".$day." AND aos > '".$time."' AND satid = '".$sat."' OR doy = ".$tomorrow." AND satid = '".$sat."'  "; 
+	
+
+	$limit = "1";
+	// echo '<br>'.$filter;
+
+
+	//Get AOS Time's and AZ from Wimpy
+	$prefix = "_".$sat."_Wimpy";
+	$etomtbl1 = isset($etomtbl1)?$etomtbl1 : "eumetsat_31$prefix"; 
+	//$tbl = $etomite->db.$etomtbl1;
+	$res = array($etomtbl1, $filter);
+	return $res;
+}
+
+// Query Filter M02
+$result_M02 = queryWimpy('M02',$dayOY,$current_time);
+
+$dallData = $modx->db->select($fields="*", "$result_M02[0]", "$result_M02[1]","$sort", "$limit");
+$dallData = $modx->db->makeArray($dallData);
+//foreach ($allData as $data){
+//print_r($data);
+
+//}
+$actual_pass_metop_doy = dayofyear2date($dallData[0]['doy'] -1);
+$actual_pass_metop_time = $dallData[0]['aos']; // 1st pass
+$sat_metop = $dallData[0]['satid'];
+$rev_metop = $dallData[0]['rev'];
+$az_metop = $dallData[0]['az'];
+
+	//echo $actual_pass_metop_time;
+
+
+if (!$actual_pass_metop_time) { // If Next pass is first in new year
+	$filter = "year > $Year AND doy < $day AND site = 'SVL' ";
+	//echo "New Year";
+	$dallData = $modx->db->select($fields="*", "$etomtbl1", "$filter","$sort", "$limit");
+	$dallData = $modx->db->makeArray($dallData);
+
+	$actual_pass_metop_doy = dayofyear2date($dallData[0]['doy'] +364);
+	$actual_pass_metop_time = $dallData[0]['aos']; // 1st pass
+	$sat_metop = $dallData[0]['satid'];
+	$rev_metop = $dallData[0]['rev'];
+	$az_metop = $dallData[0]['az'];
+}
+
+
+
+
+$actual_pass_metop = $actual_pass_metop_doy . ' ' . $actual_pass_metop_time;
+
+
+
+// Query Filter-M01
+
+$result_M01 = queryWimpy('M01',$dayOY,$current_time);
+
+
+
+$allData_m01 = $modx->db->select($fields="*", "$result_M01[0]", "$result_M01[1]","$sort_m01", "$limit");
+$allData_m01 = $modx->db->makeArray($allData_m01);
+//foreach ($allData_m01 as $data_m01){
+//print_r($data_m01);
+//}
+
+$actual_pass_doy_m01 = dayofyear2date($allData_m01[0]['doy'] -1);
+$actual_pass_time_m01 = $allData_m01[0]['aos']; // 1st pass
+$sat_m01 = $allData_m01[0]['satid'];
+$rev_m01 = $allData_m01[0]['rev'];
+$az_m01 = $allData_m01[0]['az'];
+
+$actual_pass_m01 = $actual_pass_doy_m01 . ' ' . $actual_pass_time_m01;
+
+// $actual_pass = "Nov 14, 2009 08:25:10 +0100"; // Debug to set pass to what ever
+
+
+
+
+// Query Filter-M03
+
+
+$result_M03 = queryWimpy('M03',$dayOY,$current_time);
+
+$allData_m03 = $modx->db->select($fields="*", "$result_M03[0]", "$result_M03[1]","$sort_m03", "$limit");
+$allData_m03 = $modx->db->makeArray($allData_m03);
+//foreach ($allData_m03 as $data_m03){
+//print_r($data_m03);
+//}
+
+$actual_pass_doy_m03 = dayofyear2date($allData_m03[0]['doy'] -1);
+$actual_pass_time_m03 = $allData_m03[0]['aos']; // 1st pass
+$sat_m03 = $allData_m03[0]['satid'];
+$rev_m03 = $allData_m03[0]['rev'];
+$az_m03 = $allData_m03[0]['az'];
+
+$actual_pass_m03 = $actual_pass_doy_m03 . ' ' . $actual_pass_time_m03;
+
+// $actual_pass = "Nov 14, 2009 08:25:10 +0100"; // Debug to set pass to what ever
+
+
+
+
+
+// #################################### NOAA ################################
+
+// Query Filter
+
+$filternoaa = "doy = $dayOY AND site = 'SVL' AND aos > '$current_time' OR doy = '$tomorrow' AND site = 'SVL' OR doy > $dayOY AND site = 'SVL' "; 
+
+
+$limit = "1";
+//echo $filter;
+
+//Get AOS Time's from
+$mission = "_NOAA";
+$blog = isset($blog)?$blog : "eumetsat_7$mission";
+//$tbl = $etomite->db.$blog;
+ //echo $tbl;
+ 
+//Get AZ from Wimpy
+$prefix = "_N19_Wimpy";
+$etomtbl = isset($etomtbl)?$etomtbl : "eumetsat_31$prefix"; 
+//$tbl_wimpy = $etomite->db.$etomtbl;
+
+
+
+$allData = $modx->db->select($fields="*", "$blog", "$filternoaa","$sort", "$limit");
+$allData = $modx->db->makeArray($allData);
+//foreach ($allData as $data){
+//print_r($data);
+//}
+
+$actual_pass_doy = dayofyear2date($allData[0]['doy'] -1);
+$actual_pass_time = $allData[0]['aos']; // 1st pass
+$sat = $allData[0]['satid'];
+$rev = $allData[0]['rev'];
+
+
+
+if (!$actual_pass_time) { // If Next pass is first in new year
+//   $filternoaa = "doc_id > $Year AND doy < $dayOY AND site = 'SVL' ";
+
+$allData = $modx->db->select($fields="*", "$blog", "$filternoaa","$sort", "$limit");
+$allData = $modx->db->makeArray($allData);
+
+$actual_pass_doy = dayofyear2date($allData[0]['doy'] +364);
+$actual_pass_time = $allData[0]['aos']; // 1st pass
+$sat = $allData[0]['satid'];
+$rev = $allData[0]['rev'];
+echo "NOAA-ERROR";
+}
+
+//echo $actual_pass_doy;
+//echo $actual_pass_time;
+
+
+$actual_pass_noaa = $actual_pass_doy . ' ' . $actual_pass_time;
+
+//$actual_pass_noaa = "Nov 15, 2009 13:13:00 +0100"; // Debug to set pass to what ever
+
+
+// GET AZ from Wimpy Tbl
+$filter_wim = "satid = '$sat' AND rev = '$rev'"; 
+
+$allDatawim = $modx->db->select($fields="*", "$etomtbl", "$filter_wim","$sort", "$limit");
+$allDatawim = $modx->db->makeArray($allDatawim);
+$az = $allDatawim[0]['az'];
+
+
+
+
+
+
+
+
+
+// /*
+
+
+// ################# Get best ChronOps File from EUM ftp ################################
+
+// Chronops_e_D319_00h00_D328_00h00_CR2.dbt // Chronops_e_D295_00h20_D304_00h00__01.dbt example
+
+$dir    = 'ftp://mpf:mpf@ftp.eumetsat.int/Chronops/';
+$a = scandir($dir);	 	
+	$i = '0'; 
+	    foreach ($a as $b) {   
+	       if (preg_match ('!.*Chronops_e_D([0-9]{3})_[0-9]{2}h[0-9]{2}_D([0-9]{3}).*\.dbt$!is', $b, $c)) {
+	           $data = array($i => $c);
+	           
+			     $start = $data[$i][1];
+			     $end = $data[$i][2];
+			        $hit = "0";
+			              
+			if (($dayOY >= $start) && ($dayOY < $end)) { // <=
+			$hit = "1";
+			$valid = $data[$i][0]; 
+				break;
+               	}  
+			
+			if ($hit != "1") {
+				if ($dayOY < $end) { // <=
+                            $hit = "2";
+			$valid = $data[$i][0]; 
+			break;
+
+if ($hit != "2") {
+				if ($dayOY >= $end) {
+                            $hit = "3";
+			$valid = $data[$i][0]; 
+			break;
+               	}  } 
+
+
+ // temp only
+			       
+			         if (($dayOY >= $end) || ($start < $dayOY)) {
+                            $hit = "temp";
+			$valid = $data[$i][0]; 
+				// print_r($data);//
+				break;
+               	}       
+		// temp end	       
+
+
+               	}  } else { $error = "No Chronops file for Jason2 available"; }
+			       
+		$i++;
+		   }
+               
+               	 	}
+               	 	 
+             echo $error;
+         $chronopsfile = substr($valid, 9);
+         
+         
+        // echo $chronopsfile;
+       //echo $valid;
+      //echo $hit;
+//exit();
+// ################# END ChronOps File from EUM ftp ################################ 
+
+$file_wimpy = file ('ftp://mpf:mpf@ftp.eumetsat.int/Chronops/'.$valid);
+$lines = $file_wimpy;
+
+/*
+define('SATELLITE', 'JA2');
+define('NUM',    1);
+define('YEARDOY',   2);
+define('HOUR', 3);
+define('MINUTE', 4);
+define('SECONDS',   5);
+define('MICROSEC',   6);
+
+$j2sat = "Jason2";
+$j2site = "SUSG01"; 
+
+// find times of Station examples for regex
+//1	2012-308 08:30:46.756	JA2	SUSG01	1
+$j2aos_CDA = '@([1][	])([0-9]{4}-[0-9]{3}) ([0-9]{2}):([0-9]{2}):([0-9]{2}).([0-9]{3})[	]JA2[	]SUSG01[	]1@is';*/  
+$j3aos_CDA = '@([1][	])([0-9]{4}-[0-9]{3}) ([0-9]{2}):([0-9]{2}):([0-9]{2}).([0-9]{3})[	]JA3[	]SUSG01[	]1@is';  
+
+// #################J2
+/*
+foreach ($lines as $line) {
+	if (preg_match ($j2aos_CDA, $line, $a)) {
+							
+			$j2year_doy = $a[YEARDOY];
+			$j2year_dat = substr($j2year_doy, 0, -4);  // year only
+                        $j2doy_dat = substr($j2year_doy, -3);  // doy only
+			$j2time = $a[HOUR] . ':' . $a[MINUTE] . ':' . $a[SECONDS];
+		
+                        
+//echo $year_dat . ' ' . $doy_dat . ' ' . $time . "<br />";
+
+if (($j2doy_dat == $dayOY) && ($j2time > $current_time)) {  // Todays passes
+ $j2nextpass[] = array($j2year_dat, $j2doy_dat, $j2time);
+}
+
+if (!$j2nextpass[0]) {  // Passes for tomorrow
+ if ($j2doy_dat > $dayOY) {
+  $j2nextpass[] = array($j2year_dat, $j2doy_dat, $j2time);
+}
+}
+
+if (!$j2nextpass[0]) {  // Passes if tomorrow is < today e.g. new year
+ if ($j2doy_dat > $dayOY) {
+  $j2nextpass[] = array($j2year_dat, $j2doy_dat, $j2time);
+}
+}
+}       // end if
+} // end foreach
+
+//print_r($j2nextpass); // DEBUGG
+
+$j2actual_pass_doy = dayofyear2date($j2nextpass[0][1] -1);
+$j2actual_pass_time = $j2nextpass[0][2];
+$j2actual_pass = $j2actual_pass_doy . ' ' . $j2actual_pass_time;
+if (!$j2nextpass[0]) {
+$nopassinfoj2 = "No Passes in file " .$valid;}
+*/
+
+// #################J3
+
+define('SATELLITE', 'JA3');
+define('NUM',    1);
+define('YEARDOY',   2);
+define('HOUR', 3);
+define('MINUTE', 4);
+define('SECONDS',   5);
+define('MICROSEC',   6);
+
+$j3sat = "Jason3";
+$j3site = "SUSG02"; 
+
+foreach ($lines as $line) {
+	if (preg_match ($j3aos_CDA, $line, $a)) {
+							
+			$j3year_doy = $a[YEARDOY];
+			$j3year_dat = substr($j3year_doy, 0, -4);  // year only
+                        $j3doy_dat = substr($j3year_doy, -3);  // doy only
+			$j3time = $a[HOUR] . ':' . $a[MINUTE] . ':' . $a[SECONDS];
+		
+                        
+//echo $year_dat . ' ' . $doy_dat . ' ' . $time . "<br />";
+
+if (($j3doy_dat == $dayOY) && ($j3time > $current_time)) {  // Todays passes
+ $j3nextpass[] = array($j3year_dat, $j3doy_dat, $j3time);
+}
+
+if (!$j3nextpass[0]) {  // Passes for tomorrow
+ if ($j3doy_dat > $dayOY) {
+  $j3nextpass[] = array($j3year_dat, $j3doy_dat, $j3time);
+}
+}
+
+if (!$j3nextpass[0]) {  // Passes if tomorrow is < today e.g. new year
+ if ($j3doy_dat > $dayOY) {
+  $j3nextpass[] = array($j3year_dat, $j3doy_dat, $j3time);
+}
+}
+}       // end if
+} // end foreach
+
+//print_r($nextpass); // DEBUGG
+
+$j3actual_pass_doy = dayofyear2date($j3nextpass[0][1] -1);
+$j3actual_pass_time = $j3nextpass[0][2];
+$j3actual_pass = $j3actual_pass_doy . ' ' . $j3actual_pass_time;
+if (!$j3nextpass[0]) {
+$nopassinfoj3 = "No Passes in file " .$valid;}
+
+
+// */
+
+
+
+
+// #################################### Generic ################################
+
+// Custom Alarms 
+// Stor to : SPACE_CNT_CUSTOM 
+$prefix_CNT = "SPACE_CNT_CUSTOM";
+$etomtbl_CNT = isset($etomtbl_CNT)?$etomtbl_CNT : "eumetsat_6$prefix_CNT"; 
+//$tbl_CNT = $etomite->db.$etomtbl_CNT;
+
+// Query Filter-Generic Alarm  
+$filter_CNT ="doy >= '$dayOY' AND evt_time > '$current_time' AND controller = 'generic' OR doy >= '$tomorrow' AND evt_time <> '$current_time' AND controller = 'generic'"; 
+
+
+if (!$filter_CNT) {  // If Next pass is first in new year
+$filter_CNT = "doy = '$tomorrow'";
+}
+
+$limit_CNT = "1";
+$sort_CNT = "doy ASC, evt_time ASC";
+//$dir_CNT = "ASC"; //DESC
+//echo $filter_CNT;
+
+
+// Get Custom Alarms from
+// SPACE_CNT_CUSTOM 
+$prefix_CNT = "SPACE_CNT_CUSTOM";
+$etomtbl_CNT = isset($etomtbl_CNT)?$etomtbl_CNT : "eumetsat_6$prefix_CNT"; 
+//$tbl_CNT = $etomite->db.$etomtbl_CNT;
+$allData_CNT = $modx->db->select($fields="*", "$etomtbl_CNT", "$filter_CNT","$sort_CNT", "$limit_CNT"); 
+$allData_CNT = $modx->db->makeArray($allData_CNT);
+
+
+
+// Clean Up Alarm Table
+$allData_cnt = $modx->db->select($fields="*", "$etomtbl_CNT",  "$where", $sort="evt_time ASC");
+$allData_cnt = $modx->db->makeArray($allData_cnt);
+/*
+foreach ($allData_cnt as $data_cnt){
+$var_id = $data_cnt['entryid'];
+$var_doy = $data_cnt['doy'];
+$var_evt_time = $data_cnt['evt_time'];
+$var_title = $data_cnt['title'];
+$var_description = $data_cnt['description'];
+$var_daily = $data_cnt['daily'];
+$var_controller = $data_cnt['controller'];
+
+// clean up old entries those are not daily
+
+if (($var_daily == '0') || ($var_daily == '')) {
+
+	if ($var_doy < $dayOY) {
+	$admin10 = $modx->db->query("DELETE FROM {$tbl_CNT} WHERE entryid = '{$var_id}';");
+	}
+		if (($var_doy == $dayOY) && ($var_evt_time < $current_time)){
+		$admin1 = $modx->db->query("DELETE FROM {$tbl_CNT} WHERE entryid = '{$var_id}';");
+	}	
+}
+}
+*/
+// end clean up	
+
+
+
+foreach ($allData_CNT as $data){
+
+$var_entryid = $allData_CNT['entryid'];
+$var_doy = $data['doy'];
+$evt_time_doy = dayofyear2date($data['doy'] -1);
+$evt_time = $data['evt_time']; // 1st pass
+$title = $data['title'];
+$description = $data['description'];
+$controller = $data['controller'];
+$daily = $data['daily'];
+
+//print_r ($allData_CNT); 
+
+
+
+if (($daily == '1') && ($evt_time < $current_time)) {
+$evt_time_doy = dayofyear2date($dayOY);
+//echo "1".$evt_time_doy;
+}
+
+if (($daily == '1') && ($evt_time > $current_time)) {
+$evt_time_doy = dayofyear2date($dayOY -1);
+//echo $evt_time_doy;
+}
+$actual_evt_time = $evt_time_doy . ' ' . $evt_time;
+}
+
+
+
+// $actual_pass = "Nov 14, 2009 08:25:10 +0100"; // Debug to set pass to what ever
+
+
+if (!$actual_evt_time) {
+//echo "2nd attempt filter".$evt_time_doy;
+//Alarm per person : AND controller = '$get_controller'
+$filter_CNT ="daily = '1' AND controller = 'generic' OR daily = '0' AND controller = 'generic'"; 
+
+$allData_CNT = $modx->db->select($fields="*", "$etomtbl_CNT", "$filter_CNT","$sort_CNT", "$limit_CNT");
+$allData_cnt = $modx->db->makeArray($allData_cnt);
+
+foreach ($allData_CNT as $data){
+
+$var_entryid = $allData_CNT['entryid'];
+$var_doy = $data['doy'];
+$evt_time_doy = dayofyear2date($data['doy'] -1);
+$evt_time = $data['evt_time']; // 1st pass
+$title = $data['title'];
+$description = $data['description'];
+$controller = $data['controller'];
+$daily = $data['daily'];
+
+if (($daily == '1')  && ($evt_time < $current_time)) {
+$evt_time_doy = dayofyear2date($dayOY);
+//echo "1-Backup-".$evt_time_doy;
+}
+
+if (($daily == '1')  && ($evt_time > $current_time)) {
+$evt_time_doy = dayofyear2date($dayOY -1);
+//echo $evt_time_doy;
+}
+
+}
+$actual_evt_time = $evt_time_doy . ' ' . $evt_time;
+}
+
+
+
+
+if ($sound == "off") {
+$m0x = "";
+$n19 = "";
+$jx = "";
+$generic = "";
+$link_id = "?sound=off";
+$sndendis = "<a href=\"epscntdwn\" class=\"fadeThis link\" >[Sound is off]</a>";
+           } else {
+$m0x = "PlayAOS();";
+$n19 = "PlayAOSnoaa();";
+$jx = "PlayJAOS();";
+$generic = "PlayGenericAlarm();";
+$link_id = "";
+$sndendis = "<a href=\"javascript:void(0);\" class=\"fadeThis link\" onclick=\"javascript:location.href=location.href+'?sound=off'\">[Sound is on]</a>";
+}
+
+
+$output .="
+<style type=\"text/css\">
+@import \"templates/jquery.generic-countdown.css\";
+#Metopcountdown, #Metopcountdown_m01, #Metopcountdown_m03, #NOAACountdown, #J3Countdown, #custom_cnt { 
+    width: 230px; 
+    height: 45px;
+    font-family: Arial, Helvetica, sans-serif; font-size:1em;}
+
+
+
+.highlight {
+color: #ff0000;
+}
+
+#txt{
+	display:flex;
+	flex-wrap:wrap;
+	flex-direction:row;
+}
+
+#infobox{
+    font-size:0.8em;
+    font-family: Arial, Helvetica, sans-serif;
+    padding:10px;width:510px;display:none;
+    position: fixed;
+    background-color:#000;color:#fff;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+     border-radius: 5px;
+    -moz-box-shadow: 0px 0px 7px #000;
+    -webkit-box-shadow: 0px 0px 7px #000;
+    box-shadow: 0px 0px 7px #000 ;
+    border:1pt solid #7cb8ee;
+}
+
+#metop, #metopB, #metopC, #noaa, #j3, #custom {
+     padding:10px;width:240px;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+     border:1pt solid #7cb8ee;
+     border-radius: 5px;
+}
+    .link { 
+    text-decoration: underline; color: #0099FF; font-size: 11px;
+	font-family: Arial, Helvetica, sans-serif;
+}
+
+
+</style>
+
+<script type=\"text/javascript\" src=\"templates/jquery.countdown.js\"></script>
+
+
+<script type=\"text/javascript\">
+var PageTitleNotification = {
+    Vars:{
+        OriginalTitle: document.title,
+        Interval: null
+    },    
+    On: function(notification, intervalSpeed){
+        var _this = this;
+        _this.Vars.Interval = setInterval(function(){
+             document.title = (_this.Vars.OriginalTitle == document.title)
+                                 ? notification
+                                 : _this.Vars.OriginalTitle;
+        }, (intervalSpeed) ? intervalSpeed : 500);
+    },
+    Off: function(){
+        clearInterval(this.Vars.Interval);
+        document.title = this.Vars.OriginalTitle;   
+    }
+}
+
+function serverTime() { 
+    var time = null; 
+    $.ajax({url: 'http://".$_SERVER['SERVER_NAME']."/servertime',
+        async: false, dataType: 'text', 
+        success: function(text) {
+            //var time= new Date(Date.parse(text));
+            now= new Date();
+            time = new Date(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(),  now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds());
+            //console.log(time);
+
+        }, error: function(http, message, exc) {
+            time = new Date();
+    }}); 
+    return time;
+}
+
+function soundLast5(periods) { 
+    if (periods[4] == 0 && periods[5] == 1 && periods[6] == 5) { 
+       $m0x
+       $(this).addClass('highlight');    
+       PageTitleNotification.On(\"Metop 1Min to AOS\");
+  //  PageTitleNotification.Off();
+    } 
+} 
+
+function soundLast5noaa(periods) { 
+    if (periods[4] == 0 && periods[5] == 1 && periods[6] == 5) { 
+      $n19
+      $(this).addClass('highlight');
+      PageTitleNotification.On(\"NOAA 1Min to AOS\");
+    } 
+}  
+
+function soundLast5Jason(periods) { 
+    if (periods[4] == 0 && periods[5] == 1 && periods[6] == 5) { 
+       $jx
+       $(this).addClass('highlight');    
+       PageTitleNotification.On(\"Jason 1Min to AOS\");
+  //  PageTitleNotification.Off();
+    } 
+} 
+
+function show_infobox() {
+$('#infobox').css({ opacity: 0.8 });
+$('#infobox').slideToggle(\"fast\");
+
+}
+
+function hide_infobox() {
+$('#infobox').slideUp(\"fast\");
+
+}
+
+
+function trigger_evt(periods) { 
+    if (periods[4] == 0 && periods[5] == 10 && periods[6] == 0) { 
+       $generic
+       show_infobox();
+       $(this).addClass('highlight');
+       PageTitleNotification.On(\"10Min to Event\");
+      
+    } 
+} 
+</script>
+<script type=\"text/javascript\">
+$(function () {
+	var nextP = new Date('$actual_pass_metop');
+	$('#Metopcountdown').countdown({until:nextP, serverSync:serverTime, onTick: soundLast5, 
+	format: 'HMS', expiryUrl:'http://".$_SERVER['SERVER_NAME']."/epscntdwn$link_id'});
+});
+
+$(function () {
+	var nextP = new Date('$actual_pass_m01');
+	$('#Metopcountdown_m01').countdown({until:nextP, serverSync:serverTime, onTick: soundLast5, 
+	format: 'HMS', expiryUrl:'http://".$_SERVER['SERVER_NAME']."/epscntdwn$link_id'});
+});
+
+$(function () {
+	var nextP = new Date('$actual_pass_m03');
+	$('#Metopcountdown_m03').countdown({until:nextP, serverSync:serverTime, onTick: soundLast5, 
+	format: 'HMS', expiryUrl:'http://".$_SERVER['SERVER_NAME']."/epscntdwn$link_id'});
+});
+
+$(function () {
+	var nextP = new Date('$actual_pass_noaa');
+	$('#NOAACountdown').countdown({until:nextP, serverSync:serverTime, onTick: soundLast5noaa, 
+	format: 'HMS', expiryUrl:'http://".$_SERVER['SERVER_NAME']."/epscntdwn$link_id'});
+});
+
+$(function () {
+	var nextP = new Date('$j3actual_pass');
+	$('#J3Countdown').countdown({until:nextP, serverSync:serverTime, onTick: soundLast5Jason, 
+	format: 'HMS', expiryUrl:'http://".$_SERVER['SERVER_NAME']."/epscntdwn$link_id'});
+});
+
+$(function () {
+	var nextP = new Date('$actual_evt_time');
+	$('#custom_cnt').countdown({until:nextP, serverSync:serverTime, onTick: trigger_evt, 
+	format: 'HMS', expiryUrl:'http://".$_SERVER['SERVER_NAME']."/epscntdwn$link_id'});
+});
+
+</script>
+<!-- <script language=\"JavaScript\"> -->
+<script type=\"text/javascript\">
+<!--
+function getFlashMovieObject(movieName)
+{
+  if (window.document[movieName]) 
+  {
+    return window.document[movieName];
+  }
+  if (navigator.appName.indexOf(\"Microsoft Internet\")==-1)
+  {
+    if (document.embeds && document.embeds[movieName])
+      return document.embeds[movieName]; 
+  }
+  else // if (navigator.appName.indexOf(\"Microsoft Internet\")!=-1)
+  {
+    return document.getElementById(movieName);
+  }
+}
+
+function PlayAOS()
+{
+	var flashMovie=getFlashMovieObject(\"alarms\");
+	flashMovie.Play();
+	
+}
+
+function PlayPGF()
+{
+	var flashMovie=getFlashMovieObject(\"alarms\");
+	flashMovie.GotoFrame(\"5\");
+	flashMovie.Play();
+	
+}
+
+function PlayAOSnoaa()
+{
+	var flashMovie=getFlashMovieObject(\"alarms\");
+	flashMovie.GotoFrame(\"7\");
+	flashMovie.Play();
+
+}
+
+function PlayJAOS()
+{
+	var flashMovie=getFlashMovieObject(\"alarms\");
+	flashMovie.GotoFrame(\"9\");
+	flashMovie.Play();
+
+	
+}
+
+function PlayGenericAlarm()
+{
+	var flashMovie=getFlashMovieObject(\"alarms\");
+	flashMovie.GotoFrame(\"11\");
+	flashMovie.Play();
+	
+}
+
+//-->
+</script>
+
+
+<!-- <OBJECT classid=\"clsid:D27CDB6E-AE6D-11cf-96B8-444553540000\"
+ codebase=\"http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,0,0\"
+ WIDTH=\"1\" HEIGHT=\"1\" id=\"alarms\" ALIGN=\"\">
+ <PARAM NAME=\"movie\" VALUE=\"templates/alarm.swf\"> 
+ <PARAM NAME=\"quality\" VALUE=\"high\"> 
+ <PARAM NAME=\"bgcolor\" VALUE=\"#FFFFFF\"> 
+ <EMBED src=\"templates/alarm.swf\" swliveconnect=\"true\" quality=high bgcolor=#FFFFFF  WIDTH=\"1\" HEIGHT=\"1\" NAME=\"alarms\" ALIGN=\"\"
+ TYPE=\"application/x-shockwave-flash\" PLUGINSPAGE=\"http://www.macromedia.com/go/getflashplayer\"></EMBED>
+</OBJECT> -->
+
+
+
+<div id=\"metop\">
+<h4>$sat_metop MetOp-A </h4>
+<p class=\"meta\">
+Info:<br />
+Sat: $sat_metop 
+Rev: $rev_metop 
+AZ: $az_metop 
+AOS: $actual_pass_metop_time<br />
+</p>
+<div id=\"Metopcountdown\"></div>
+</div>
+
+
+<div id=\"metopB\">
+<h4>$sat_m01 MetOp-B</h4>
+<p class=\"meta\">
+Info:<br />
+Sat: $sat_m01
+Rev: $rev_m01 
+AZ: $az_m01 
+AOS: $actual_pass_time_m01<br />
+</p>
+<div id=\"Metopcountdown_m01\"></div>
+</div>
+
+<div id=\"metopC\">
+<h4>$sat_m03 MetOp-C</h4>
+<p class=\"meta\">
+Info:<br />
+Sat: $sat_m03
+Rev: $rev_m03 
+AZ: $az_m03 
+AOS: $actual_pass_time_m03<br />
+</p>
+<div id=\"Metopcountdown_m03\"></div>
+</div>
+
+<div id=\"noaa\">
+<h4>$sat NOAA Blind-Orbit</h4>
+<p class=\"meta\">
+Info:<br />
+Sat: $sat 
+Rev: $rev
+AZ: $az 
+AOS: $actual_pass_time<br />
+</p>
+<div id=\"NOAACountdown\"></div>
+</div>
+
+<div id=\"j3\">
+<h4>$j3sat</h4>
+<p class=\"meta\">
+Info: $nopassinfoj3<br />
+Sat: $j3sat 
+Site: $j3site
+AOS: $j3actual_pass_time<br />
+</p>
+<div id=\"J3Countdown\"></div>
+</div>
+
+
+<div id=\"infobox\"><b>Info for Alarm (10min before event): $title</b><hr>DOY: $var_doy / $evt_time_doy<br />Trigger Time : $evt_time<br />Daily Alarm : $daily<br />Originator: $controller<br /><br /><b>Event: <br />$description</b><br /><br /><a href=\"javascript:void(0);\" class=\"link\" onclick=\"show_infobox();\">[close]</a>&nbsp;&nbsp;&nbsp;<a href=\"javascript:void(0);\" class=\"link\" onclick=\"PlayGenericAlarm();\">[Test Alarm]</a></div>
+
+<!-- <div id=\"custom\">
+<h4><u>Generic Alarm:</u></h4>
+<h4>$title</h4>
+<p class=\"meta\">
+Info:<br />
+DOY: $var_doy ($evt_time_doy)
+AOS:$evt_time
+</p>
+<div id=\"custom_cnt\"></div>
+<a href=\"javascript:void(0);\" class=\"link\" onclick=\"show_infobox();\">[Details]</a>
+</div> -->
+
+
+
+";
+
+
+
+return $output;

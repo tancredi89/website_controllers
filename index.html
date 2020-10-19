@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
-    <script src="main.js" text="\text/javascript"></script>
     <title>EPS Controller Website</title>
 </head>
 <body>
@@ -25,7 +24,10 @@
             <li><a href="projects.html">Projects</a></li>
         </ul>
 </nav>
-<div class="header"><div class="title">EPS Controller Website</div><div class="time"></div></div>
+
+<audio src="images/soundoff.wav" id="soundOn"></audio>
+<audio src="images/soundon.wav" id="soundOff"></audio>
+<div class="header"><div class="title">EPS Controller Website</div><a href="#" onclick="soundChange()" id="sound">SOUND ON</a><div class="clock" id="time" onload="displayTime()"></div></div>
 
 <div class="metop-countdown" id="metopa"onclick="showMetop()">
     <div class="metop-title"><h2>Metop A</h2><h2 id="metopa-cntdwn">01:24:30</h2></div>
@@ -88,6 +90,6 @@
     </div>
 </div>
 
-
+<script src="main.js" text="\text/javascript"></script>
 </body>
 </html>
