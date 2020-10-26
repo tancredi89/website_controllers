@@ -22,11 +22,26 @@ function displayTime() {
     var day = new Date();
     var s = parseInt(day.getSeconds());
     var m = parseInt(day.getMinutes());
-    var h = parseInt(day.getHours())-2;
+    var h = Math.abs(parseInt(day.getHours())-1);
+    if (day.getHours()==0) {
+        h = 23
+    }
     var data = parseInt(day.getDate());
     var mese = parseInt(day.getMonth());
     var DOY = dayOfYear(data,mese);
 
+    h = (h < 10) ? "0" + h : h;
+    m = (m < 10) ? "0" + m : m;
+    s = (s < 10) ? "0" + s : s;
+
+    var stringTime = "UTC  "+ h + ":" + m + ":" + s;
+    
+    document.getElementById("time").textContent = stringTime;
+    setTimeout(displayTime, 1000);
+};
+displayTime();
+
+function populateTimers() {
     var metopAAos = "298:13:28:46";
     var metopBAos = "299:10:04:10";
     var metopCAos = "300:13:18:26";
@@ -93,13 +108,6 @@ function displayTime() {
         document.getElementById("fullmetopb").style.gridColumn = "1 / span 1"
     }
 
-    h = (h < 10) ? "0" + h : h;
-    m = (m < 10) ? "0" + m : m;
-    s = (s < 10) ? "0" + s : s;
-
-    var stringTime = "UTC  "+ h + ":" + m + ":" + s;
-    
-    document.getElementById("time").textContent = stringTime;
     document.getElementById("metopa-cntdwn").textContent = metopA;
     document.getElementById("metopb-cntdwn").textContent = metopB;
     document.getElementById("metopc-cntdwn").textContent = metopC;
@@ -113,28 +121,9 @@ function displayTime() {
     document.getElementById("fullmetopa-cntdwn").textContent = metopA;
     document.getElementById("fullmetopb-cntdwn").textContent = metopB;
     document.getElementById("fullmetopc-cntdwn").textContent = metopC;
-
-    if (Math.abs(deltaA)<50){
-        var audio = document.getElementById('1minwarning');
-        audio.pause();
-    }  else if (Math.abs(deltaA)<60) {
-        var audio = document.getElementById('1minwarning');
-        audio.play();
-    }
-
-    if (Math.abs(deltaB)<60){
-        var audio = document.getElementById('1minwarning')
-        audio.play();
-    }
-    if (Math.abs(deltaC)<60){
-        var audio = document.getElementById('1minwarning');
-        audio.play();  
-    }
-
-
-    setTimeout(displayTime, 1000);
-};
-displayTime();
+    setTimeout(populateTimers,1000);
+}
+populateTimers();
 
 function soundChange() {
     var soundText = document.getElementById('sound').innerHTML;
@@ -174,7 +163,7 @@ function timerCountdown(time) {
     var todayDate = parseInt(now.getDate());
     var todayMonth = parseInt(now.getMonth());
     var todayDOY = dayOfYear(todayDate,todayMonth);
-    var hours = parseInt(now.getHours())-2;
+    var hours = parseInt(now.getHours())-1;
     var mdown = m - parseInt(now.getMinutes());
     if (todayDOY==metopDOY) {
         var hdown = Math.abs(h - hours);

@@ -25,7 +25,13 @@
         </ul>
 </nav>
 
-<div class="header"><div class="title">EPS Controller Website</div><div class="sound">SOUND ON</div><div class="time">UTC 04:25:36</div></div>
+<audio src="images/soundoff.wav" id="soundOn"></audio>
+<audio src="images/soundon.wav" id="soundOff"></audio>
+<audio src="images/1minpass.wav" id="1minwarning"></audio>
+<div class="header"><div class="title">EPS Controller Website</div><a href="#" onclick="soundChange()" id="sound">SOUND ON</a><div class="clock" id="time" onload="displayTime()"></div></div>
 
+<div class="noaaBos"></div>
+<div class="noaaDataTypes"></div>
+<script src="main.js" text="\text/javascript"></script>
 </body>
 </html>
